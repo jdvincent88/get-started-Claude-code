@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paycheck Planner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>Paycheck Planner</h1>
+      <p class="subtitle">Figure out what % of every paycheck to set aside for each bill.</p>
+    </header>
+
+    <div id="warning-banner" class="banner banner-warning hidden"></div>
+
+    <main class="grid">
+      <section class="card" id="paycheck-card">
+        <h2>Your Paycheck</h2>
+        <form id="paycheck-form" class="form-row">
+          <label>
+            Amount per paycheck
+            <input type="number" id="paycheck-amount" min="0" step="0.01" placeholder="e.g. 1200" required />
+          </label>
+          <label>
+            Pay frequency
+            <select id="paycheck-frequency">
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 weeks</option>
+              <option value="semimonthly">Twice a month</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+        <button id="record-paycheck-btn" class="btn btn-accent" type="button">💰 Record paycheck received</button>
+        <p class="hint">Recording a paycheck sets aside money for each bill using the % below, and tracks leftover spending cash.</p>
+        <p class="leftover-line">Unallocated spending cash so far: <strong id="leftover-amount">$0.00</strong></p>
+      </section>
+
+      <section class="card" id="add-bill-card">
+        <h2>Add a Bill</h2>
+        <form id="bill-form" class="form-row">
+          <label>
+            Bill name
+            <input type="text" id="bill-name" placeholder="e.g. Rent" required />
+          </label>
+          <label>
+            Amount
+            <input type="number" id="bill-amount" min="0" step="0.01" placeholder="e.g. 1500" required />
+          </label>
+          <label>
+            Due frequency
+            <select id="bill-frequency">
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 weeks</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="semiannually">Every 6 months</option>
+              <option value="annually">Yearly</option>
+            </select>
+          </label>
+          <label>
+            Next due date
+            <input type="date" id="bill-due-date" required />
+          </label>
+          <button type="submit" class="btn btn-primary">Add bill</button>
+        </form>
+      </section>
+
+      <section class="card wide" id="allocation-card">
+        <h2>Weekly Allocation</h2>
+        <div class="table-wrap">
+          <table id="allocation-table">
+            <thead>
+              <tr>
+                <th>Bill</th>
+                <th>Amount</th>
+                <th>Due</th>
+                <th>Next due date</th>
+                <th>% of paycheck</th>
+                <th>$ per paycheck</th>
+                <th>Saved toward bill</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="allocation-body">
+              <!-- rows injected by JS -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4">Total allocated</td>
+                <td id="total-pct">0%</td>
+                <td id="total-amt">$0.00</td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p id="empty-state" class="hint hidden">No bills yet — add one above to see your allocation plan.</p>
+      </section>
+
+      <section class="card wide" id="log-card">
+        <h2>Activity</h2>
+        <ul id="activity-log" class="activity-log"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
