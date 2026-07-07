@@ -10,36 +10,87 @@
   <div class="app">
     <header class="app-header">
       <h1>Paycheck Planner</h1>
-      <p class="subtitle">Figure out what % of every paycheck to set aside for each bill.</p>
+      <p class="subtitle">Figure out what % of every paycheck to set aside for each bill — and catch up on past-due balances without missing what's ahead.</p>
     </header>
 
-    <div id="warning-banner" class="banner banner-warning hidden"></div>
+    <div id="insight-banner" class="banner hidden"></div>
+
+    <section class="stat-row" id="stat-row">
+      <div class="stat-tile" id="stat-income">
+        <div class="stat-label">Weekly income</div>
+        <div class="stat-value" id="stat-income-value">$0.00</div>
+        <div class="stat-sub" id="stat-income-sub">from your income sources</div>
+      </div>
+      <div class="stat-tile" id="stat-committed">
+        <div class="stat-label">Weekly committed</div>
+        <div class="stat-value" id="stat-committed-value">$0.00</div>
+        <div class="stat-sub" id="stat-committed-sub">regular bills + catch-up</div>
+      </div>
+      <div class="stat-tile" id="stat-surplus">
+        <div class="stat-label">Weekly surplus</div>
+        <div class="stat-value" id="stat-surplus-value">$0.00</div>
+        <div class="stat-sub" id="stat-surplus-sub">left after everything above</div>
+      </div>
+      <div class="stat-tile" id="stat-pastdue">
+        <div class="stat-label">Past-due balance</div>
+        <div class="stat-value" id="stat-pastdue-value">$0.00</div>
+        <div class="stat-sub" id="stat-pastdue-sub">remaining across all bills</div>
+      </div>
+    </section>
 
     <main class="grid">
-      <section class="card" id="paycheck-card">
-        <h2>Your Paycheck</h2>
-        <form id="paycheck-form" class="form-row">
+      <section class="card" id="income-card">
+        <h2>Income Sources</h2>
+        <p class="hint">Add one per paycheck source (e.g. "My job", "Spouse's job"). Doesn't matter how often each actually lands — record every paycheck as it arrives.</p>
+        <div class="table-wrap">
+          <table id="income-table">
+            <thead>
+              <tr><th>Name</th><th>Amount</th><th>Frequency</th><th>Weekly equiv.</th><th></th></tr>
+            </thead>
+            <tbody id="income-body"></tbody>
+          </table>
+        </div>
+        <p id="income-empty" class="hint hidden">No income sources yet — add one below.</p>
+        <form id="income-form" class="form-row">
           <label>
-            Amount per paycheck
-            <input type="number" id="paycheck-amount" min="0" step="0.01" placeholder="e.g. 1200" required />
+            Name
+            <input type="text" id="income-name" placeholder="e.g. My job" required />
           </label>
           <label>
-            Pay frequency
-            <select id="paycheck-frequency">
+            Amount per paycheck
+            <input type="number" id="income-amount" min="0" step="0.01" placeholder="e.g. 900" required />
+          </label>
+          <label>
+            Frequency
+            <select id="income-frequency">
               <option value="weekly">Weekly</option>
               <option value="biweekly">Every 2 weeks</option>
               <option value="semimonthly">Twice a month</option>
               <option value="monthly">Monthly</option>
             </select>
           </label>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="submit" class="btn btn-primary">Add income source</button>
         </form>
-        <button id="record-paycheck-btn" class="btn btn-accent" type="button">💰 Record paycheck received</button>
-        <p class="hint">Recording a paycheck sets aside money for each bill using the % below, and tracks leftover spending cash.</p>
+      </section>
+
+      <section class="card" id="record-card">
+        <h2>Record a Paycheck</h2>
+        <form id="record-form" class="form-row">
+          <label>
+            Which paycheck arrived?
+            <select id="record-source"></select>
+          </label>
+          <label>
+            Amount received
+            <input type="number" id="record-amount" min="0" step="0.01" />
+          </label>
+          <button type="submit" class="btn btn-accent">💰 Record this paycheck</button>
+        </form>
+        <p class="hint">Distributes the amount across every bill using the plan below — regular share into savings, catch-up share against past-due balances.</p>
         <p class="leftover-line">Unallocated spending cash so far: <strong id="leftover-amount">$0.00</strong></p>
       </section>
 
-      <section class="card" id="add-bill-card">
+      <section class="card wide" id="add-bill-card">
         <h2>Add a Bill</h2>
         <form id="bill-form" class="form-row">
           <label>
@@ -47,7 +98,7 @@
             <input type="text" id="bill-name" placeholder="e.g. Rent" required />
           </label>
           <label>
-            Amount
+            Regular amount
             <input type="number" id="bill-amount" min="0" step="0.01" placeholder="e.g. 1500" required />
           </label>
           <label>
@@ -65,12 +116,24 @@
             Next due date
             <input type="date" id="bill-due-date" required />
           </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="bill-is-past-due" />
+            This bill is currently past due
+          </label>
+          <label id="bill-pastdue-amount-wrap" class="hidden">
+            Past-due amount owed
+            <input type="number" id="bill-pastdue-amount" min="0" step="0.01" placeholder="e.g. 400" />
+          </label>
+          <label id="bill-pastdue-weeks-wrap" class="hidden">
+            Target payoff (weeks)
+            <input type="number" id="bill-pastdue-weeks" min="1" step="1" value="8" />
+          </label>
           <button type="submit" class="btn btn-primary">Add bill</button>
         </form>
       </section>
 
       <section class="card wide" id="allocation-card">
-        <h2>Weekly Allocation</h2>
+        <h2>Weekly Allocation Plan</h2>
         <div class="table-wrap">
           <table id="allocation-table">
             <thead>
@@ -80,14 +143,12 @@
                 <th>Due</th>
                 <th>Next due date</th>
                 <th>% of paycheck</th>
-                <th>$ per paycheck</th>
-                <th>Saved toward bill</th>
+                <th>$ per week</th>
+                <th>Saved toward next</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody id="allocation-body">
-              <!-- rows injected by JS -->
-            </tbody>
+            <tbody id="allocation-body"></tbody>
             <tfoot>
               <tr>
                 <td colspan="4">Total allocated</td>
@@ -99,6 +160,28 @@
           </table>
         </div>
         <p id="empty-state" class="hint hidden">No bills yet — add one above to see your allocation plan.</p>
+      </section>
+
+      <section class="card wide hidden" id="catchup-card">
+        <h2>Past-Due Catch-Up Plan</h2>
+        <p class="hint" id="catchup-summary"></p>
+        <div class="table-wrap">
+          <table id="catchup-table">
+            <thead>
+              <tr>
+                <th>Bill</th>
+                <th>Remaining past-due</th>
+                <th>Target payoff</th>
+                <th>Weekly catch-up $</th>
+                <th>% of paycheck</th>
+                <th>Est. payoff</th>
+                <th>Progress</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="catchup-body"></tbody>
+          </table>
+        </div>
       </section>
 
       <section class="card wide" id="log-card">
